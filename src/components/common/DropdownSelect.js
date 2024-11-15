@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { styled } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
@@ -14,7 +13,6 @@ const Placeholder = styled("div")({
 const StyledSelect = styled(Select)(({ type }) => ({
   width: "95px",
   height: "31px",
-  padding: "12px 16px 11px 16px",
   borderRadius: type === "product" ? "0px" : "30px",
   "& .MuiSelect-icon": {
     color: "black",

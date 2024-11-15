@@ -1,6 +1,5 @@
 import { styled, Typography } from "@mui/material";
 import ProductList from "./components/ProductList";
-import { defaultProductList, fetchProducts } from "./utils/api";
 import ProductsListContainer from "./components/ProductsListContainer";
 
 const Container = styled("Paper")({
@@ -15,13 +14,7 @@ const Container = styled("Paper")({
 const MainLayoutPage = () => {
   return (
     <Container>
-      <ProductsListContainer
-        productsList={defaultProductList}
-        onDiscountChange={() => {
-          console.log("onDiscountchange");
-        }}
-        onRemoveProduct={() => console.log("on remove product")}
-      />
+      <ProductsListContainer />
     </Container>
   );
 };

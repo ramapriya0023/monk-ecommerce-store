@@ -26,8 +26,8 @@ const Title = styled(Typography)({
 const HeaderRow = styled(Box)({
   display: "flex",
   alignItems: "center",
-  gap: "170px",
-  marginLeft: "200px",
+  gap: "180px",
+  justifyContent: "center",
 });
 
 const HeaderText = styled(Typography)({

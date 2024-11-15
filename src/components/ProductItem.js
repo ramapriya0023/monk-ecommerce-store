@@ -1,17 +1,17 @@
-import React, { useState } from "react";
-import IconButton from "@mui/material/IconButton";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import CloseIcon from "@mui/icons-material/Close";
-import ExpandLessIcon from "@mui/icons-material/ExpandLess";
-import EditIcon from "@mui/icons-material/Edit";
-import { Card, styled, Button } from "@mui/material";
-import Input from "./common/Input";
-import DropdownSelect from "./common/DropdownSelect";
-import ProductVariants from "./ProductVariants";
-import { primaryColor } from "../constants/colors";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import CloseIcon from "@mui/icons-material/Close";
+import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
+import EditIcon from "@mui/icons-material/Edit";
+import ExpandLessIcon from "@mui/icons-material/ExpandLess";
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { Button, Card, styled } from "@mui/material";
+import IconButton from "@mui/material/IconButton";
+import React, { useState } from "react";
+import { primaryColor } from "../constants/colors";
+import DropdownSelect from "./common/DropdownSelect";
+import Input from "./common/Input";
+import ProductVariants from "./ProductVariants";
 
 const ProductContainer = styled("div")({
   display: "flex",
@@ -146,7 +146,7 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
               variant="contained"
               size="medium"
               onClick={() => setShowDiscount(true)}
-              sx={{ background: primaryColor }}
+              sx={{ background: primaryColor, textTransform: "none" }}
             >
               Add Discount
             </Button>
@@ -177,13 +177,7 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
 
       {showVariants && product.variants.length > 0 && (
         <VariantsContainer>
-          {product.variants.map((variant) => (
-            <ProductVariants
-              product={product}
-              variant={variant}
-              updateProduct={updateProduct}
-            />
-          ))}
+          <ProductVariants product={product} updateProduct={updateProduct} />
         </VariantsContainer>
       )}
     </ProductContainer>

@@ -1,7 +1,16 @@
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import CloseIcon from "@mui/icons-material/Close";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { Card, IconButton, styled } from "@mui/material";
+import React from "react";
 import DropdownSelect from "./common/DropdownSelect";
-import CloseIcon from "@mui/icons-material/Close";
 import Input from "./common/Input";
 
 const VariantRow = styled("div")({
@@ -38,9 +47,17 @@ const DiscountValueCard = styled(Card)({
   borderRadius: "30px",
 });
 
-const ProductVariants = ({ product, variant, updateProduct }) => {
+const SortableVariantRow = ({ variant, updateProduct }) => {
+  const { attributes, listeners, setNodeRef, transform, transition } =
+    useSortable({ id: variant.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   return (
-    <VariantRow key={variant.id}>
+    <VariantRow ref={setNodeRef} style={style} {...attributes} {...listeners}>
       <DragHandle>
         <DragIndicatorIcon sx={{ color: "#00000080" }} />
       </DragHandle>
@@ -50,43 +67,75 @@ const ProductVariants = ({ product, variant, updateProduct }) => {
       <DiscountContainer>
         <DiscountValueCard>
           <Input
-            value={product.discountValue}
+            value={variant.discountValue || 0}
             type="number"
-            onChange={(event) => {
+            onChange={(event) =>
               updateProduct(
                 "variant",
                 variant.id,
                 "discountValue",
                 event.target.value
-              );
-            }}
+              )
+            }
           />
         </DiscountValueCard>
         <Card sx={{ borderRadius: "30px" }}>
           <DropdownSelect
-            value={product.discountType || "% Off"}
+            value={variant.discountType || "% Off"}
             options={["% Off", "Flat Off"]}
-            onChange={(event) => {
-              console.log(event.target.value);
+            onChange={(event) =>
               updateProduct(
                 "variant",
                 variant.id,
                 "discountType",
                 event.target.value
-              );
-            }}
-            type="variant"
+              )
+            }
           />
         </Card>
       </DiscountContainer>
       <IconButton
-        onClick={() => {
-          updateProduct("variant", variant.id, "delete");
-        }}
+        onClick={() => updateProduct("variant", variant.id, "delete")}
       >
         <CloseIcon />
       </IconButton>
     </VariantRow>
+  );
+};
+
+const ProductVariants = ({ product, updateProduct }) => {
+  const handleDragEnd = (event) => {
+    const { active, over } = event;
+
+    if (active.id !== over.id) {
+      const oldIndex = product.variants.findIndex(
+        (variant) => variant.id === active.id
+      );
+      const newIndex = product.variants.findIndex(
+        (variant) => variant.id === over.id
+      );
+
+      const updatedVariants = arrayMove(product.variants, oldIndex, newIndex);
+
+      updateProduct("product", product.id, "variants", updatedVariants);
+    }
+  };
+
+  return (
+    <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext
+        items={product.variants.map((variant) => variant.id)}
+        strategy={verticalListSortingStrategy}
+      >
+        {product.variants.map((variant) => (
+          <SortableVariantRow
+            key={variant.id}
+            variant={variant}
+            updateProduct={updateProduct}
+          />
+        ))}
+      </SortableContext>
+    </DndContext>
   );
 };
 

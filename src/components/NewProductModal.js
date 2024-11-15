@@ -9,14 +9,16 @@ import {
   Divider,
   FormControlLabel,
   FormGroup,
+  Skeleton,
   Typography,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { styled } from "@mui/material/styles";
 import SearchBox from "./common/SearchBox";
 import { fetchProducts } from "../services/ProductsAPIService";
 import debounce from "lodash.debounce";
+import { primaryColor } from "../constants/colors";
 
 const StyledDialog = styled(Dialog)({
   padding: "0px",
@@ -91,7 +93,7 @@ const ActionButton = styled(Button)(({ theme }) => ({
 }));
 
 const AddButton = styled(Button)({
-  background: "#008060",
+  background: primaryColor,
   color: "#fff",
   "&:hover": {
     background: "#006750",
@@ -101,22 +103,27 @@ const AddButton = styled(Button)({
 const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchValue, setSearchValue] = useState("");
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(null);
   const [page, setPage] = useState(1);
+  const [isDataFetched, setIsDataFetched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const containerRef = useRef(null);
 
   const loadProducts = useCallback(async (search = "", page = 1) => {
     setLoading(true);
     setError(null);
     try {
       const data = await fetchProducts(search, page, 10);
+      console.log({ data });
       setProducts((prev) => (page === 1 ? data : [...prev, ...data]));
     } catch (error) {
       console.error("Error fetching products:", error);
       setError("Failed to load products.");
+      setProducts([]);
     } finally {
       setLoading(false);
+      setIsDataFetched(true);
     }
   }, []);
 
@@ -133,7 +140,17 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
       setPage(1);
       debouncedLoadProducts(searchValue, 1);
     }
+
+    return () => {
+      setIsDataFetched(false);
+    };
   }, [open, searchValue, debouncedLoadProducts]);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      containerRef.current.style.overflow = loading ? "hidden" : "auto";
+    }
+  }, [loading]);
 
   useEffect(() => {
     if (page > 1) {
@@ -202,6 +219,7 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
     const { scrollTop, scrollHeight, clientHeight } = event.target;
     if (scrollTop + clientHeight >= scrollHeight - 5 && !loading) {
       setPage((prevPage) => prevPage + 1);
+      setLoading(true);
     }
   };
 
@@ -213,6 +231,7 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
       onClose={() => {
         onClose();
         setSelectedProducts([]);
+        setSearchValue("");
       }}
       fullWidth
     >
@@ -222,6 +241,7 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
           onClick={() => {
             onClose();
             setSelectedProducts([]);
+            setSearchValue("");
           }}
         >
           <CloseIcon />
@@ -237,21 +257,29 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
           />
         </SearchContainer>
         <Divider />
-        <ProductsContainer onScroll={handleScroll}>
+        <ProductsContainer
+          onScroll={loading ? null : handleScroll}
+          ref={containerRef}
+        >
           <FormGroup>
-            {products.map((product, index) => (
+            {products?.map((product, index) => (
               <div key={product.id}>
                 <ProductContainer>
                   <FormControlLabel
                     control={
                       <Checkbox
-                        checked={isProductChecked(product.id)}
-                        indeterminate={isProductIndeterminate(product.id)}
+                        checked={Boolean(isProductChecked(product.id))}
+                        indeterminate={Boolean(
+                          isProductIndeterminate(product.id)
+                        )}
                         onChange={() => handleProductChange(product.id)}
                         sx={{
-                          color: "#008060",
+                          color: primaryColor,
                           "&.Mui-checked": {
-                            color: "#008060",
+                            color: primaryColor,
+                          },
+                          "&.MuiCheckbox-indeterminate": {
+                            color: primaryColor,
                           },
                         }}
                       />
@@ -276,18 +304,20 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
                         <FormControlLabel
                           control={
                             <Checkbox
-                              checked={selectedProducts
-                                .find((p) => p.id === product.id)
-                                ?.variants.some((v) => v.id === variant.id)}
-                              sx={{
-                                color: "#008060",
-                                "&.Mui-checked": {
-                                  color: "#008060",
-                                },
-                              }}
+                              checked={Boolean(
+                                selectedProducts
+                                  .find((p) => p.id === product.id)
+                                  ?.variants.some((v) => v.id === variant.id)
+                              )}
                               onChange={() =>
                                 handleVariantChange(product.id, variant.id)
                               }
+                              sx={{
+                                color: primaryColor,
+                                "&.Mui-checked": {
+                                  color: primaryColor,
+                                },
+                              }}
                             />
                           }
                           label={
@@ -310,28 +340,69 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
                 {index < products.length - 1 && <Divider />}
               </div>
             ))}
-            {loading && <Typography align="center">Loading...</Typography>}
-            {!loading && products.length === 0 && (
-              <Typography align="center">No products found.</Typography>
+            {loading && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Skeleton width={550} height={60} />
+              </div>
+            )}
+            {!loading && products?.length === 0 && isDataFetched && (
+              <div
+                style={{
+                  height: "60px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "20px",
+                }}
+              >
+                <Typography align="center">No products found.</Typography>
+              </div>
             )}
             {error && <Typography color="error">{error}</Typography>}
           </FormGroup>
         </ProductsContainer>
       </StyledDialogContent>
-      <DialogActions>
-        <ActionButton variant="outlined" onClick={onClose}>
-          Cancel
-        </ActionButton>
-        <AddButton
-          variant="contained"
-          onClick={() => {
-            addSelectedProducts(selectedProducts);
-            setSelectedProducts([]);
-            onClose();
-          }}
-        >
-          Add
-        </AddButton>
+      <DialogActions
+        sx={{
+          padding: "20px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
+        <div>
+          {selectedProducts.length > 0 && (
+            <div>
+              {`${selectedProducts.length} ${
+                selectedProducts.length === 1 ? "product" : "products"
+              } selected`}
+            </div>
+          )}
+        </div>
+
+        <div style={{ display: "flex", gap: "10px" }}>
+          <ActionButton variant="outlined" onClick={onClose}>
+            Cancel
+          </ActionButton>
+          <AddButton
+            variant="contained"
+            sx={{ textTransform: "none" }}
+            onClick={() => {
+              addSelectedProducts(selectedProducts);
+              setSelectedProducts([]);
+              setSearchValue("");
+              onClose();
+            }}
+          >
+            Add
+          </AddButton>
+        </div>
       </DialogActions>
     </StyledDialog>
   );

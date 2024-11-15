@@ -75,17 +75,15 @@ const ProductList = () => {
 
     setProducts((prevProducts) => {
       const updatedProducts = [...prevProducts];
-
       updatedProducts.splice(editingProductIndex, 1, ...newSelectedProducts);
-
       console.log({ updatedProducts });
-
       return updatedProducts;
     });
 
     setEditingProductIndex(null);
     setShowAddModal(false);
   };
+
   const handleUpdateProduct = (type, id, toUpdate, value) => {
     setProducts((prevProducts) =>
       prevProducts.map((product) => {
@@ -132,9 +130,8 @@ const ProductList = () => {
     <div
       style={{
         padding: "20px",
-        width: "600px",
+        width: "100%",
         display: "flex",
-        alignItems: "center",
         flexDirection: "column",
       }}
     >
@@ -151,12 +148,13 @@ const ProductList = () => {
                 <ProductItem
                   product={product}
                   onDelete={() =>
+                    products.length > 1 &&
                     setProducts(products.filter((p) => p.id !== product.id))
                   }
                   onEdit={() => handleEditProduct(index)}
                   updateProduct={handleUpdateProduct}
                 />
-                <Divider variant="inset" />
+                <Divider variant="middle" />
               </React.Fragment>
             ))}
           </div>
@@ -176,6 +174,10 @@ const ProductList = () => {
           sx={{
             borderColor: primaryColor,
             color: primaryColor,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            textTransform: "none",
           }}
         >
           Add Product

@@ -1,5 +1,5 @@
 const testingURL =
-  "https://monk-ecommerce-storeserver-2tg7mm1yy-ramapriyas-projects.vercel.app/proxy/products/search";
+  "https://monk-ecommerce-storeserver.vercel.app/proxy/products/search";
 const baseUrl = "http://stageapi.monkcommerce.app/task/products/search";
 const API_KEY = "72njgfa948d9aS7gs5";
 

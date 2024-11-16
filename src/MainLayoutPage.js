@@ -9,6 +9,7 @@ const Container = styled("Paper")({
   width: "90vw",
   padding: "50px",
   flexDirection: "column",
+  overflow: "hidden",
 });
 
 const MainLayoutPage = () => {

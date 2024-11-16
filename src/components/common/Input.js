@@ -19,15 +19,34 @@ const Input = ({
   disabled = false,
   placeholder,
   type = "text",
-  fullWidth = false,
+  discountType,
 }) => {
+  // Validation logic on change
+  const handleChange = (event) => {
+    let newValue = event.target.value;
+
+    // If the value is empty, allow it to be cleared
+    if (newValue === "") {
+      onChange({ target: { value: newValue } });
+      return;
+    }
+
+    // If discountType is "% Off", ensure the value stays between 0 and 100
+    if (discountType === "% Off") {
+      newValue = Math.min(Math.max(0, newValue), 100); // Keep within range of 0-100
+    }
+
+    // Call onChange with the potentially modified value
+    onChange({ target: { value: newValue } });
+  };
+
   return (
     <InputContainer
       disabled={disabled}
       value={value}
       type={type}
       placeholder={placeholder}
-      onChange={onChange}
+      onChange={handleChange} // Use custom handleChange
     />
   );
 };

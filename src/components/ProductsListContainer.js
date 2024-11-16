@@ -1,6 +1,8 @@
-import { Typography, Box } from "@mui/material";
+import { Typography, Box, Button } from "@mui/material";
 import ProductList from "./ProductList";
 import { styled } from "@mui/system";
+import { useState } from "react";
+import { primaryColor } from "../constants/colors";
 
 const Container = styled(Box)({
   display: "flex",
@@ -37,7 +39,44 @@ const HeaderText = styled(Typography)({
   fontWeight: 500,
 });
 
-const ProductsListContainer = ({}) => {
+const StyledButton = styled(Button)({
+  borderColor: primaryColor,
+  color: primaryColor,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  textTransform: "none",
+});
+
+const ButtonContainer = styled("div")({
+  marginTop: "20px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+});
+
+const ProductsListContainer = () => {
+  const [products, setProducts] = useState([
+    {
+      id: 1,
+      title: "",
+      discountType: "% Off",
+      discountValue: 0,
+      variants: [],
+    },
+  ]);
+
+  const addProduct = () => {
+    const newProduct = {
+      id: `${products.length + 1}`,
+      title: "",
+      discountType: "% Off",
+      discountValue: 0,
+      variants: [],
+    };
+    setProducts([...products, newProduct]);
+  };
+
   return (
     <Container>
       <InnerContainer>
@@ -46,7 +85,12 @@ const ProductsListContainer = ({}) => {
           <HeaderText>Product</HeaderText>
           <HeaderText>Discount</HeaderText>
         </HeaderRow>
-        <ProductList />
+        <ProductList products={products} setProducts={setProducts} />
+        <ButtonContainer>
+          <StyledButton variant="outlined" onClick={addProduct}>
+            Add Product
+          </StyledButton>
+        </ButtonContainer>
       </InnerContainer>
     </Container>
   );

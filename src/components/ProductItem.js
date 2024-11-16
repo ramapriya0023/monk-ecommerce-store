@@ -5,7 +5,7 @@ import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import EditIcon from "@mui/icons-material/Edit";
 import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Button, Card, styled } from "@mui/material";
+import { Button, Card, styled, Tooltip } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
 import React, { useEffect, useState } from "react";
 import {
@@ -48,6 +48,7 @@ const ProductTitle = styled("div")(({ isNew }) => ({
   display: "flex",
   alignItems: "center",
   color: isNew && dragHandleColor,
+  overflow: "hidden",
 }));
 
 const DiscountContainer = styled("div")({
@@ -84,15 +85,31 @@ const VariantsContainer = styled("div")({
   flexDirection: "column",
   position: "relative",
   left: "20px",
+  width: "90%",
 });
 
-const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
+const ProductItem = ({
+  product,
+  onDelete,
+  onEdit,
+  updateProduct,
+  products,
+}) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: product.id });
 
   const [showVariants, setShowVariants] = useState(false);
   const [showDiscount, setShowDiscount] = useState(false);
-  const [discountValue, setDiscountValue] = useState(0);
+  const [discountValue, setDiscountValue] = useState(
+    product.discountValue || 0
+  );
+  const [discountType, setDiscountType] = useState(
+    product.discountType || "% Off"
+  );
+
+  useEffect(() => {
+    setDiscountValue(0);
+  }, [discountType]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -111,9 +128,12 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
             <DragIndicatorIcon sx={{ color: dragHandleColor }} />
           </DragHandle>
           <ProductCard>
-            <ProductTitle isNew={product?.title?.length === 0}>
-              {product?.title || "Select product"}
-            </ProductTitle>
+            <Tooltip title={product.title} placement="top">
+              <ProductTitle isNew={product?.title?.length === 0}>
+                {product?.title || "Select product"}
+              </ProductTitle>
+            </Tooltip>
+
             <IconButton size="small" onClick={onEdit} sx={{ ml: 1 }}>
               <EditIcon sx={{ fontSize: 18, color: "#00000033" }} />
             </IconButton>
@@ -125,19 +145,22 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
                   value={discountValue}
                   type="number"
                   onChange={(event) => setDiscountValue(event.target.value)}
+                  discountType={discountType}
                 />
               </DiscountValueCard>
               <Card>
                 <DropdownSelect
-                  value={product.discountType || "% Off"}
+                  value={discountType}
                   options={["% Off", "Flat Off"]}
                   onChange={(event) => {
                     event.preventDefault();
+                    const newDiscountType = event.target.value;
+                    setDiscountType(newDiscountType);
                     updateProduct(
                       "product",
                       product.id,
                       "discountType",
-                      event.target.value
+                      newDiscountType
                     );
                   }}
                   type="product"
@@ -160,15 +183,19 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
               </Button>
             </DiscountContainer>
           )}
-          <IconButton
-            onClick={onDelete}
-            disabled={false}
-            sx={{ width: "5px", height: "5px" }}
-          >
-            <CloseIcon />
-          </IconButton>
+          <div>
+            {products.length !== 1 && (
+              <IconButton
+                onClick={onDelete}
+                disabled={false}
+                sx={{ width: "5px", height: "5px" }}
+              >
+                <CloseIcon />
+              </IconButton>
+            )}
+          </div>
         </ProductRow>
-        {product.variants.length !== 0 && (
+        {product.variants.length > 1 && (
           <ToggleVariantsContainer
             onClick={() => setShowVariants(!showVariants)}
           >
@@ -184,9 +211,13 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
         )}
       </div>
 
-      {showVariants && product.variants.length > 0 && (
+      {showVariants && product.variants.length > 1 && (
         <VariantsContainer>
-          <ProductVariants product={product} updateProduct={updateProduct} />
+          <ProductVariants
+            product={product}
+            updateProduct={updateProduct}
+            showDiscount={showDiscount}
+          />
         </VariantsContainer>
       )}
     </ProductContainer>

@@ -27,7 +27,7 @@ const DragHandle = styled("span")({
 });
 
 const VariantCard = styled(Card)({
-  width: "184px",
+  width: "-webkit-fill-available",
   padding: "5px 10px",
   display: "flex",
   borderRadius: "30px",
@@ -48,10 +48,19 @@ const DiscountValueCard = styled(Card)({
   borderRadius: "30px",
 });
 
-const SortableVariantRow = ({ variant, updateProduct }) => {
+const SortableVariantRow = ({ variant, updateProduct, showDiscount }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: variant.id });
-  const [discountValue, setDiscountValue] = useState(0);
+  const [discountValue, setDiscountValue] = useState(
+    variant.discountValue || 0
+  );
+  const [discountType, setDiscountType] = useState(
+    variant.discountType || "% Off"
+  );
+
+  useEffect(() => {
+    setDiscountValue(0);
+  }, [discountType]);
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -61,7 +70,7 @@ const SortableVariantRow = ({ variant, updateProduct }) => {
   useEffect(() => {
     updateProduct("variant", variant.id, "discountValue", discountValue);
   }, [discountValue]);
-
+  console.log({ showDiscount });
   return (
     <VariantRow ref={setNodeRef} style={style} {...attributes}>
       <DragHandle {...listeners}>
@@ -70,31 +79,36 @@ const SortableVariantRow = ({ variant, updateProduct }) => {
       <VariantCard>
         <div>{variant.title}</div>
       </VariantCard>
-      <DiscountContainer>
-        <DiscountValueCard>
-          <Input
-            value={discountValue}
-            type="number"
-            onChange={(event) => {
-              setDiscountValue(event.target.value);
-            }}
-          />
-        </DiscountValueCard>
-        <Card sx={{ borderRadius: "30px" }}>
-          <DropdownSelect
-            value={variant.discountType || "% Off"}
-            options={["% Off", "Flat Off"]}
-            onChange={(event) =>
-              updateProduct(
-                "variant",
-                variant.id,
-                "discountType",
-                event.target.value
-              )
-            }
-          />
-        </Card>
-      </DiscountContainer>
+      {showDiscount && (
+        <DiscountContainer>
+          <DiscountValueCard>
+            <Input
+              value={discountValue}
+              discountType={variant.discountType}
+              type="number"
+              onChange={(event) => {
+                setDiscountValue(event.target.value);
+              }}
+            />
+          </DiscountValueCard>
+          <Card sx={{ borderRadius: "30px" }}>
+            <DropdownSelect
+              value={variant.discountType || "% Off"}
+              options={["% Off", "Flat Off"]}
+              onChange={(event) => {
+                const newDiscountType = event.target.value;
+                setDiscountType(newDiscountType);
+                updateProduct(
+                  "variant",
+                  variant.id,
+                  "discountType",
+                  event.target.value
+                );
+              }}
+            />
+          </Card>
+        </DiscountContainer>
+      )}
       <IconButton
         onClick={() => updateProduct("variant", variant.id, "delete")}
       >
@@ -104,7 +118,7 @@ const SortableVariantRow = ({ variant, updateProduct }) => {
   );
 };
 
-const ProductVariants = ({ product, updateProduct }) => {
+const ProductVariants = ({ product, updateProduct, showDiscount }) => {
   const handleDragEnd = (event) => {
     const { active, over } = event;
 
@@ -133,6 +147,7 @@ const ProductVariants = ({ product, updateProduct }) => {
             key={variant.id}
             variant={variant}
             updateProduct={updateProduct}
+            showDiscount={showDiscount}
           />
         ))}
       </SortableContext>

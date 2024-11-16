@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import ProductItem from "./ProductItem";
-import Button from "@mui/material/Button";
 import { Divider, styled } from "@mui/material";
 import AddNewProductsModal from "./AddNewProductsModal";
-import { primaryColor } from "../constants/colors";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -16,34 +14,12 @@ const ProductsContainer = styled("div")({
   width: "100%",
   display: "flex",
   flexDirection: "column",
+  overflowY: "auto",
+  scrollbarWidth: "thin",
+  maxHeight: "550px",
 });
 
-const StyledButton = styled(Button)({
-  borderColor: primaryColor,
-  color: primaryColor,
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  textTransform: "none",
-});
-
-const ButtonContainer = styled("div")({
-  marginTop: "20px",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-});
-
-const ProductList = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      title: "",
-      discountType: "% Off",
-      discountValue: 0,
-      variants: [],
-    },
-  ]);
+const ProductList = ({ products, setProducts }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProductIndex, setEditingProductIndex] = useState(null);
 
@@ -59,41 +35,34 @@ const ProductList = () => {
     }
   };
 
-  const addProduct = () => {
-    const newProduct = {
-      id: `${products.length + 1}`,
-      title: "",
-      discountType: "% Off",
-      discountValue: 0,
-      variants: [],
-    };
-    setProducts([...products, newProduct]);
-  };
-
   const handleEditProduct = (editingIndex) => {
     setEditingProductIndex(editingIndex);
     setShowAddModal(true);
   };
 
   const handleAddSelectedProducts = (newSelectedProducts) => {
-    let finalPr = newSelectedProducts.map((product) => ({
-      id: products.length + 1,
-      title: product.title,
-      discountType: "% Off",
-      discountValue: 0,
-      variants: [
-        ...product.variants.map((variant, index) => ({
-          title: variant.title,
-          id: `${products.length + 1}-${index + 1}`,
-          discountType: "% Off",
-          discountValue: 0,
-        })),
-      ],
-    }));
-
+    let structuredNewProducts = newSelectedProducts.map((product, index) => {
+      let productIndex = index;
+      return {
+        id: products.length + index,
+        title: product.title,
+        discountType: "% Off",
+        discountValue: 0,
+        variants: [
+          ...product.variants.map((variant, index) => {
+            return {
+              title: variant.title,
+              id: `${products.length + productIndex}-${index + 1}`,
+              discountType: "% Off",
+              discountValue: 0,
+            };
+          }),
+        ],
+      };
+    });
     setProducts((prevProducts) => {
       const updatedProducts = [...prevProducts];
-      updatedProducts.splice(editingProductIndex, 1, ...finalPr);
+      updatedProducts.splice(editingProductIndex, 1, ...structuredNewProducts);
       return updatedProducts;
     });
 
@@ -158,11 +127,11 @@ const ProductList = () => {
                 <ProductItem
                   product={product}
                   onDelete={() =>
-                    products.length > 1 &&
                     setProducts(products.filter((p) => p.id !== product.id))
                   }
                   onEdit={() => handleEditProduct(index)}
                   updateProduct={handleUpdateProduct}
+                  products={products}
                 />
                 <Divider variant="middle" />
               </React.Fragment>
@@ -170,11 +139,6 @@ const ProductList = () => {
           </div>
         </SortableContext>
       </DndContext>
-      <ButtonContainer>
-        <StyledButton variant="outlined" onClick={addProduct}>
-          Add Product
-        </StyledButton>
-      </ButtonContainer>
 
       <AddNewProductsModal
         open={showAddModal}

@@ -24,19 +24,12 @@ app.get("/proxy/products/search", async (req, res) => {
       }
     );
 
-    if (!response.data) {
-      throw new Error("Received null response from the API");
-    }
-
     res.json(response.data);
   } catch (error) {
     console.error("Error in API call:", error.message);
-    res
-      .status(500)
-      .json({
-        error:
-          error.message || "An error occurred while processing the request",
-      });
+    res.status(500).json({
+      error: error.message || "An error occurred while processing the request",
+    });
   }
 });
 

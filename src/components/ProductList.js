@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import ProductItem from "./ProductItem";
 import Button from "@mui/material/Button";
-import { Divider } from "@mui/material";
-import NewProductModal from "./NewProductModal";
+import { Divider, styled } from "@mui/material";
+import AddNewProductsModal from "./AddNewProductsModal";
 import { primaryColor } from "../constants/colors";
 import { closestCenter, DndContext } from "@dnd-kit/core";
 import {
@@ -10,6 +10,29 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
+
+const ProductsContainer = styled("div")({
+  padding: "20px",
+  width: "100%",
+  display: "flex",
+  flexDirection: "column",
+});
+
+const StyledButton = styled(Button)({
+  borderColor: primaryColor,
+  color: primaryColor,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  textTransform: "none",
+});
+
+const ButtonContainer = styled("div")({
+  marginTop: "20px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+});
 
 const ProductList = () => {
   const [products, setProducts] = useState([
@@ -48,21 +71,18 @@ const ProductList = () => {
   };
 
   const handleEditProduct = (editingIndex) => {
-    console.log({ editingIndex });
     setEditingProductIndex(editingIndex);
     setShowAddModal(true);
   };
 
   const handleAddSelectedProducts = (newSelectedProducts) => {
-    console.log({ newSelectedProducts });
-
-    newSelectedProducts.map((product) => ({
+    let finalPr = newSelectedProducts.map((product) => ({
       id: products.length + 1,
       title: product.title,
       discountType: "% Off",
       discountValue: 0,
       variants: [
-        product.variants.map((variant, index) => ({
+        ...product.variants.map((variant, index) => ({
           title: variant.title,
           id: `${products.length + 1}-${index + 1}`,
           discountType: "% Off",
@@ -71,12 +91,9 @@ const ProductList = () => {
       ],
     }));
 
-    console.log({ newSelectedProducts, editingProductIndex, products });
-
     setProducts((prevProducts) => {
       const updatedProducts = [...prevProducts];
-      updatedProducts.splice(editingProductIndex, 1, ...newSelectedProducts);
-      console.log({ updatedProducts });
+      updatedProducts.splice(editingProductIndex, 1, ...finalPr);
       return updatedProducts;
     });
 
@@ -127,14 +144,7 @@ const ProductList = () => {
   };
 
   return (
-    <div
-      style={{
-        padding: "20px",
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
+    <ProductsContainer>
       <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
           items={products}
@@ -160,38 +170,20 @@ const ProductList = () => {
           </div>
         </SortableContext>
       </DndContext>
-      <div
-        style={{
-          marginTop: "20px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-        }}
-      >
-        <Button
-          variant="outlined"
-          onClick={addProduct}
-          sx={{
-            borderColor: primaryColor,
-            color: primaryColor,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "flex-end",
-            textTransform: "none",
-          }}
-        >
+      <ButtonContainer>
+        <StyledButton variant="outlined" onClick={addProduct}>
           Add Product
-        </Button>
-      </div>
+        </StyledButton>
+      </ButtonContainer>
 
-      <NewProductModal
+      <AddNewProductsModal
         open={showAddModal}
         onClose={() => setShowAddModal(false)}
         addSelectedProducts={(selectedProducts) =>
           handleAddSelectedProducts(selectedProducts)
         }
       />
-    </div>
+    </ProductsContainer>
   );
 };
 

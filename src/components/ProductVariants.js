@@ -9,9 +9,10 @@ import { CSS } from "@dnd-kit/utilities";
 import CloseIcon from "@mui/icons-material/Close";
 import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
 import { Card, IconButton, styled } from "@mui/material";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import DropdownSelect from "./common/DropdownSelect";
 import Input from "./common/Input";
+import { dragHandleColor } from "../constants/colors";
 
 const VariantRow = styled("div")({
   display: "flex",
@@ -50,16 +51,21 @@ const DiscountValueCard = styled(Card)({
 const SortableVariantRow = ({ variant, updateProduct }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: variant.id });
+  const [discountValue, setDiscountValue] = useState(0);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
+  useEffect(() => {
+    updateProduct("variant", variant.id, "discountValue", discountValue);
+  }, [discountValue]);
+
   return (
-    <VariantRow ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <DragHandle>
-        <DragIndicatorIcon sx={{ color: "#00000080" }} />
+    <VariantRow ref={setNodeRef} style={style} {...attributes}>
+      <DragHandle {...listeners}>
+        <DragIndicatorIcon sx={{ color: dragHandleColor }} />
       </DragHandle>
       <VariantCard>
         <div>{variant.title}</div>
@@ -67,16 +73,11 @@ const SortableVariantRow = ({ variant, updateProduct }) => {
       <DiscountContainer>
         <DiscountValueCard>
           <Input
-            value={variant.discountValue || 0}
+            value={discountValue}
             type="number"
-            onChange={(event) =>
-              updateProduct(
-                "variant",
-                variant.id,
-                "discountValue",
-                event.target.value
-              )
-            }
+            onChange={(event) => {
+              setDiscountValue(event.target.value);
+            }}
           />
         </DiscountValueCard>
         <Card sx={{ borderRadius: "30px" }}>

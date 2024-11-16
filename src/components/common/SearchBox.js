@@ -1,4 +1,4 @@
-import { IconButton, InputBase, Paper, styled } from "@mui/material";
+import { IconButton, InputBase, styled } from "@mui/material";
 import SearchRoundedIcon from "@mui/icons-material/SearchRounded";
 
 const InputContainer = styled("div")({

@@ -1,39 +1,21 @@
 import { styled } from "@mui/material";
 import MenuItem from "@mui/material/MenuItem";
 import Select from "@mui/material/Select";
-
-const Placeholder = styled("div")({
-  fontSize: "14px",
-  fontWeight: 400,
-  lineHeight: "21px",
-  textAlign: "left",
-  color: "black",
-});
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import { primaryColor } from "../../constants/colors";
 
 const StyledSelect = styled(Select)(({ type }) => ({
-  width: "95px",
+  width: "100px",
   height: "31px",
-  borderRadius: type === "product" ? "0px" : "30px",
-  "& .MuiSelect-icon": {
-    color: "black",
+  borderRadius: "30px",
+
+  "& fieldset": {
+    border: `1px solid ${primaryColor}`,
+    borderRadius: type === "product" ? "0px" : "30px",
+    "&.MuiOutlinedInput-notchedOutline": {
+      border: "none",
+    },
   },
-  "&.MuiOutlinedInput-notchedOutline": {
-    border: "none",
-    borderColor: "white",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "white",
-  },
-  borderColor: "white",
-  border: "none",
-  "&.Mui-focused": {
-    outline: "none",
-    border: "white",
-  },
-  "&:hover": {
-    border: "none",
-  },
-  outline: "none",
 }));
 
 const StyledMenuItem = styled(MenuItem)({
@@ -51,7 +33,6 @@ const StyledMenuItem = styled(MenuItem)({
 const DropdownSelect = ({
   options = [],
   value,
-  placeholder = "Select an option",
   onChange,
   type = "product",
 }) => {
@@ -60,18 +41,18 @@ const DropdownSelect = ({
       type={type}
       value={value}
       onChange={onChange}
+      IconComponent={ExpandMoreIcon} // Set the custom icon
       renderValue={(selected) => {
-        if (!selected) {
-          return <Placeholder>{placeholder}</Placeholder>;
-        }
         return selected;
       }}
       displayEmpty
       inputProps={{ "aria-label": "Without label" }}
       MenuProps={{
-        sx: {
-          "& .MuiMenu-paper": {
-            color: "black",
+        PaperProps: {
+          sx: {
+            "& .MuiMenu-paper": {
+              color: "black",
+            },
           },
         },
       }}

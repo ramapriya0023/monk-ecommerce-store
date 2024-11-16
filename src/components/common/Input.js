@@ -1,6 +1,6 @@
 import { styled } from "@mui/material";
 
-const InputContainer = styled("input")(({ fullWidth }) => ({
+const InputContainer = styled("input")({
   width: "70px",
   height: "31px",
   padding: "12px 16px 11px 16px",
@@ -11,7 +11,7 @@ const InputContainer = styled("input")(({ fullWidth }) => ({
     outline: "none",
   },
   color: "black",
-}));
+});
 
 const Input = ({
   value,
@@ -28,7 +28,6 @@ const Input = ({
       type={type}
       placeholder={placeholder}
       onChange={onChange}
-      fullWidth={fullWidth}
     />
   );
 };

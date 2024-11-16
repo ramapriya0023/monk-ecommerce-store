@@ -7,8 +7,12 @@ import ExpandLessIcon from "@mui/icons-material/ExpandLess";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import { Button, Card, styled } from "@mui/material";
 import IconButton from "@mui/material/IconButton";
-import React, { useState } from "react";
-import { primaryColor } from "../constants/colors";
+import React, { useEffect, useState } from "react";
+import {
+  dragHandleColor,
+  primaryColor,
+  toggleVariantsColor,
+} from "../constants/colors";
 import DropdownSelect from "./common/DropdownSelect";
 import Input from "./common/Input";
 import ProductVariants from "./ProductVariants";
@@ -33,6 +37,7 @@ const DragHandle = styled("span")({
 
 const ProductCard = styled(Card)({
   width: "220px",
+  height: "21px",
   padding: "5px 10px 5px 10px",
   display: "flex",
   alignItems: "center",
@@ -42,13 +47,14 @@ const ProductCard = styled(Card)({
 const ProductTitle = styled("div")(({ isNew }) => ({
   display: "flex",
   alignItems: "center",
-  color: isNew && "#00000080",
+  color: isNew && dragHandleColor,
 }));
 
 const DiscountContainer = styled("div")({
   display: "flex",
   alignItems: "center",
   gap: "5px",
+  width: "180px",
 });
 
 const DiscountValueCard = styled(Card)({
@@ -68,8 +74,8 @@ const ToggleVariantsContainer = styled("div")({
 const ToggleVariantsText = styled("div")({
   textDecorationLine: "underline",
   fontSize: "12px",
-  textDecorationColor: "#006EFF",
-  color: "#006EFF",
+  textDecorationColor: toggleVariantsColor,
+  color: toggleVariantsColor,
 });
 
 const VariantsContainer = styled("div")({
@@ -86,19 +92,23 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
 
   const [showVariants, setShowVariants] = useState(false);
   const [showDiscount, setShowDiscount] = useState(false);
+  const [discountValue, setDiscountValue] = useState(0);
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  console.log({ showVariants, product });
+  useEffect(() => {
+    updateProduct("product", product.id, "discountValue", discountValue);
+  }, [discountValue]);
+
   return (
     <ProductContainer ref={setNodeRef} style={style} {...attributes}>
       <div>
         <ProductRow>
           <DragHandle {...listeners}>
-            <DragIndicatorIcon sx={{ color: "#00000080" }} />
+            <DragIndicatorIcon sx={{ color: dragHandleColor }} />
           </DragHandle>
           <ProductCard>
             <ProductTitle isNew={product?.title?.length === 0}>
@@ -112,16 +122,9 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
             <DiscountContainer>
               <DiscountValueCard>
                 <Input
-                  value={product?.discountValue || 0}
+                  value={discountValue}
                   type="number"
-                  onChange={(event) =>
-                    updateProduct(
-                      "product",
-                      product.id,
-                      "discountValue",
-                      event.target.value
-                    )
-                  }
+                  onChange={(event) => setDiscountValue(event.target.value)}
                 />
               </DiscountValueCard>
               <Card>
@@ -129,7 +132,7 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
                   value={product.discountType || "% Off"}
                   options={["% Off", "Flat Off"]}
                   onChange={(event) => {
-                    console.log(event.target.value);
+                    event.preventDefault();
                     updateProduct(
                       "product",
                       product.id,
@@ -142,14 +145,20 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
               </Card>
             </DiscountContainer>
           ) : (
-            <Button
-              variant="contained"
-              size="medium"
-              onClick={() => setShowDiscount(true)}
-              sx={{ background: primaryColor, textTransform: "none" }}
-            >
-              Add Discount
-            </Button>
+            <DiscountContainer>
+              <Button
+                variant="contained"
+                size="medium"
+                onClick={() => setShowDiscount(true)}
+                sx={{
+                  background: primaryColor,
+                  textTransform: "none",
+                  width: "inherit",
+                }}
+              >
+                Add Discount
+              </Button>
+            </DiscountContainer>
           )}
           <IconButton
             onClick={onDelete}
@@ -167,9 +176,9 @@ const ProductItem = ({ product, onDelete, onEdit, updateProduct }) => {
               {showVariants ? "Hide variants" : "Show variants"}
             </ToggleVariantsText>
             {showVariants ? (
-              <ExpandLessIcon sx={{ color: "#006EFF" }} />
+              <ExpandLessIcon sx={{ color: toggleVariantsColor }} />
             ) : (
-              <ExpandMoreIcon sx={{ color: "#006EFF" }} />
+              <ExpandMoreIcon sx={{ color: toggleVariantsColor }} />
             )}
           </ToggleVariantsContainer>
         )}

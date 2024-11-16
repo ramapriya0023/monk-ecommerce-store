@@ -19,6 +19,7 @@ import SearchBox from "./common/SearchBox";
 import { fetchProducts } from "../services/ProductsAPIService";
 import debounce from "lodash.debounce";
 import { primaryColor } from "../constants/colors";
+import ImageIcon from "@mui/icons-material/Image";
 
 const StyledDialog = styled(Dialog)({
   padding: "0px",
@@ -100,7 +101,15 @@ const AddButton = styled(Button)({
   },
 });
 
-const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
+const FallBackContainer = styled("div")({
+  height: "60px",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "20px",
+});
+
+const AddNewProductsModal = ({ open, onClose, addSelectedProducts }) => {
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [searchValue, setSearchValue] = useState("");
   const [products, setProducts] = useState(null);
@@ -108,6 +117,7 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
   const [isDataFetched, setIsDataFetched] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isLastPage, setIsLastPage] = useState(false);
   const containerRef = useRef(null);
 
   const loadProducts = useCallback(async (search = "", page = 1) => {
@@ -115,7 +125,9 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
     setError(null);
     try {
       const data = await fetchProducts(search, page, 10);
-      console.log({ data });
+      if (data.length === 0) {
+        setIsLastPage(true);
+      }
       setProducts((prev) => (page === 1 ? data : [...prev, ...data]));
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -217,13 +229,16 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
 
   const handleScroll = (event) => {
     const { scrollTop, scrollHeight, clientHeight } = event.target;
-    if (scrollTop + clientHeight >= scrollHeight - 5 && !loading) {
+    if (
+      scrollTop + clientHeight >= scrollHeight - 5 &&
+      !loading &&
+      !isLastPage
+    ) {
       setPage((prevPage) => prevPage + 1);
       setLoading(true);
     }
   };
 
-  console.log({ selectedProducts });
   return (
     <StyledDialog
       open={open}
@@ -287,10 +302,16 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
                     label={
                       <ProductLabel>
                         <Avatar
-                          alt={product.title}
                           src={product.image.src}
-                          sx={{ width: 56, height: 56 }}
-                        />
+                          sx={{
+                            width: "36px",
+                            height: "36px",
+                            borderRadius: "4px",
+                          }}
+                          variant="square"
+                        >
+                          <ImageIcon />
+                        </Avatar>
                         <ProductTitle>{product.title}</ProductTitle>
                       </ProductLabel>
                     }
@@ -352,19 +373,15 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
               </div>
             )}
             {!loading && products?.length === 0 && isDataFetched && (
-              <div
-                style={{
-                  height: "60px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: "20px",
-                }}
-              >
+              <FallBackContainer>
                 <Typography align="center">No products found.</Typography>
-              </div>
+              </FallBackContainer>
             )}
-            {error && <Typography color="error">{error}</Typography>}
+            {error && (
+              <FallBackContainer>
+                <Typography color="error">{error}</Typography>
+              </FallBackContainer>
+            )}
           </FormGroup>
         </ProductsContainer>
       </StyledDialogContent>
@@ -377,13 +394,9 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
         }}
       >
         <div>
-          {selectedProducts.length > 0 && (
-            <div>
-              {`${selectedProducts.length} ${
-                selectedProducts.length === 1 ? "product" : "products"
-              } selected`}
-            </div>
-          )}
+          {`${selectedProducts.length} ${
+            selectedProducts.length <= 1 ? "product" : "products"
+          } selected`}
         </div>
 
         <div style={{ display: "flex", gap: "10px" }}>
@@ -408,4 +421,4 @@ const NewProductModal = ({ open, onClose, addSelectedProducts }) => {
   );
 };
 
-export default NewProductModal;
+export default AddNewProductsModal;
